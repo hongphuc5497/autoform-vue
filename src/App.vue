@@ -16,17 +16,20 @@
     <div v-else-if="state === 'loading'">Loading...</div>
 
     <form @submit.prevent="updateFirebase" @input="fieldUpdate">
-      <input type="email" name="email" v-model="formData.email"/>
+      <input type="email" name="email" v-model="formData.email" />
       <input type="text" name="name" v-model="formData.name" />
       <input type="tel" name="phone" v-model="formData.phone" />
 
-      <button type="submit">Submit</button>
+      <button type="submit">Save changes</button>
     </form>
+
+    <button @click="revertToOriginal">Revoke to original data</button>
   </div>
 </template>
 
 <script>
 import db from "./firebase";
+import { debounce } from "debounce";
 
 const documentPath = "contacts/jeff";
 
@@ -36,6 +39,8 @@ export default {
       firebaseData: null,
       formData: {},
       state: "loading",
+      errorMessage: "",
+      originalData: null,
     };
   },
 
@@ -57,8 +62,15 @@ export default {
     },
     fieldUpdate() {
       this.state = "modified";
-      this.updateFirebase();
+      this.debounceUpdate();
     },
+    debounceUpdate: debounce(function () {
+      this.updateFirebase();
+    }, 1500),
+    revertToOriginal() {
+      this.state = 'revoked'
+      this.formData = { ...this.originalData }
+    }
   },
 
   created: async function () {
@@ -67,7 +79,12 @@ export default {
 
     if (!data) {
       data = { name: "", email: "", phone: "" };
+      docRef.set(data);
     }
+
+    this.formData = data;
+    this.originalData = { ...data };
+    this.state = "synced";
   },
 };
 </script>
