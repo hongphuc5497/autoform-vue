@@ -1,19 +1,39 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <h3>Firebase App</h3>
+    {{ firebaseData }}
+    
+    <h3>Form Data</h3>
+    {{ firebaseData }}
+
+    <form>
+      <input type="email" name="email" v-model="formData.email"/>
+      <input type="text" name="name" v-model="formData.name"/>
+      <input type="tel" name="phone" v-model="formData.phone"/>
+
+      <button type="submit"></button>
+    </form>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import db from "./firebase";
+
+const documentPath = "contacts/jeff";
 
 export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  }
-}
+  data() {
+    return {
+      firebaseData: null,
+      formData: {}
+    };
+  },
+  firestore() {
+    return {
+      firebaseData: db.doc(documentPath),
+    };
+  },
+};
 </script>
 
 <style>
