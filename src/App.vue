@@ -6,8 +6,17 @@
     <h3>Form Data</h3>
     {{ firebaseData }}
 
-    <form @submit.prevent="updateFirebase">
-      <input type="email" name="email" v-model="formData.email" />
+    <div v-if="state === 'synced'">Form is synced with Firestore</div>
+    <div v-else-if="state === 'modified'">
+      Form data changed, will synced with Firestore
+    </div>
+    <div v-else-if="state === 'error'">
+      Failed to save Firestore, {{ errorMessage }}
+    </div>
+    <div v-else-if="state === 'loading'">Loading...</div>
+
+    <form @submit.prevent="updateFirebase" @input="fieldUpdate">
+      <input type="email" name="email" v-model="formData.email"/>
       <input type="text" name="name" v-model="formData.name" />
       <input type="tel" name="phone" v-model="formData.phone" />
 
@@ -29,11 +38,13 @@ export default {
       state: "loading",
     };
   },
+
   firestore() {
     return {
       firebaseData: db.doc(documentPath),
     };
   },
+
   methods: {
     async updateFirebase() {
       try {
@@ -44,6 +55,19 @@ export default {
         this.state = "error";
       }
     },
+    fieldUpdate() {
+      this.state = "modified";
+      this.updateFirebase();
+    },
+  },
+
+  created: async function () {
+    const docRef = db.doc(documentPath);
+    let data = (await docRef.get()).data();
+
+    if (!data) {
+      data = { name: "", email: "", phone: "" };
+    }
   },
 };
 </script>
